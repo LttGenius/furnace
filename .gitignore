@@ -32,3 +32,14 @@ octave-workspace
 
 # test
 test/*
+test.*
+test2.*
+*.txt
+testTex
+text.mat
+untitled.*
+untitled2.*
+FastPGP
+Dataset
+CalcMeasures
+.gitignore
