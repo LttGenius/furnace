@@ -1,5 +1,5 @@
 function [ ResultMap ] = dataanalysis( data, keys )
-%UNTITLED2 此处显示有关此函数的摘要
+%dataanalysis Default sort
 
 [NModels, NDatasets] = size(data);
 Nkeys = numel(keys);
@@ -15,7 +15,7 @@ for iData = 1:NDatasets
             if numel(m) > 1
                 TempMap(iModel, iData, iKey) = m(1);
             else
-                TempMap(iModel, iData, iKey) = m(1);
+                TempMap(iModel, iData, iKey) = m;
             end
         end
     end

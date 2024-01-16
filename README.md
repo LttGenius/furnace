@@ -13,7 +13,7 @@
 <br />
 
 <p align="center">
-  <a href="https://github.com/LttGenius/furnace/">
+  <a href="https://github.com/xinyu-pu/furnace/">
     <img src="images/furnace.png" alt="Logo" width="80" height="80">
   </a>
 
@@ -21,38 +21,34 @@
   <p align="center">
     An open-source tool for machine learning model
     <br />
-    <a href="https://github.com/LttGenius/furnace"><strong>Download »</strong></a>
+    <a href="https://github.com/xinyu-pu/furnace"><strong>Download »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/LttGenius/furnace">Demo</a>
+    <a href="https://github.com/xinyu-pu/furnace">Demo</a>
     ·
-    <a href="https://github.com/LttGenius/furnace/issues">Bug</a>
+    <a href="https://github.com/xinyu-pu/furnace/issues">Bug</a>
     ·
-    <a href="https://github.com/LttGenius/furnace/issues">Issues</a>
+    <a href="https://github.com/xinyu-pu/furnace/issues">Issues</a>
   </p>
 
 </p>
 
 
 This README.md is for machine learning researchers. 
- 
-## Catalogs
 
 - [Furnace](#furnace)
-  - [Catalogs](#catalogs)
-    - [Guide](#guide)
+  - [Guides](#guides)
         - [**Recommended configuration**](#recommended-configuration)
         - [**Installation**](#installation)
-        - [**Tutorial**](#tutorial)
-          - [```alchemy```](#alchemy)
-          - [`racetrack`](#racetrack)
-    - [Description of the document catalog](#description-of-the-document-catalog)
-    - [Author](#author)
-    - [Copyright](#copyright)
+        - [**Introduction**](#introduction)
+        - [Properties](#properties)
+        - [Methods](#methods)
+  - [Author](#author)
+  - [Copyright](#copyright)
 
 ---
 
-### Guide
+## Guides
 
 ##### **Recommended configuration**
 
@@ -61,236 +57,375 @@ This README.md is for machine learning researchers.
 ##### **Installation**
 
 ```sh
-git clone https://github.com/LttGenius/furnace.git
+git clone https://github.com/xinyu-pu/furnace.git
 ```
 Place the folder `furnace` in your project directory. 
 
-##### **Tutorial**
+##### **Introduction**
+Class `furnace` conducts comparative experiments or grid searches. Furthermore, The `furnace` can covert results to $\LaTeX$ table. 
 
-There are two main functions `alchemy` and `racetrack`. 
+##### <font color=#CD5C5C>Properties</font>
+- <details>
+  <summary><font color=#9400D3>datasets - cell of datasets</font></summary>
+  Type: cell
+
+  Size: $n \times 3$
+  
+  - The first column is the tag of certain datasets.
+  - The second column is the name of the datasets.
+  - The third column is the path or real value of datasets. 
+
+  Example: 
+  ```matlab
+  >> datasets
+    data =
+
+  3×3 cell array
+
+    {[1]}    {'3source' }    {'Dataset\3source_Per0.mat' }
+    {[2]}    {'bbcsport'}    {'Dataset\bbcsport_Per0.mat'}
+    {[3]}    {'Caltech7'}    {'Dataset\Caltech7_Per0.mat'}
+  
+  ```
+  </details>
+- <details><summary><font color=#9400D3>models - cell of models</font></summary>
+  Type: cell
+
+  Size: $n \times 3$
+
+  - The first column is the tag of certain models.
+  - The second column is the name of the models.
+  - The third column is the function handle of models. 
+  
+  Example: 
+  ```matlab
+  >> models
+    models =
+
+  3×3 cell array
+
+    {[1]}    {'RWLTA' }    {@runRWLTA}
+    {[2]}    {'PGP'}       {@runPGP}
+    {[3]}    {'Kmeans'}    {@runKmeans}
+  
+  ```
+
+  In addition, the formality of each model is as follows, 
+  ```matlab
+  function Results = function_name(data, uCtrl, mysCtrl)
+    X = data.X;
+    gt = data.gt;
+
+    AllDatasetsNames = uCtrl;
+    Parameters = mysCtrl;
+
+  end
+  ```
+  where ```uCtrl``` is a global parameter, that is the same in all models. The ```mysCtrl``` is specific parameter, that is an element of ```sCtrl```, where ```sCtrl``` is a $n\times 1$ cell, $n$ is the number of models. 
+  </details>
+- <details><summary><font color=#9400D3>status - Runtime Status</font></summary>
+  Type: numeric
 
 
 
-###### ```alchemy```
-`alchemy` is utilized to search the optimal parameters of the model. 
-```MATLAB
-  [ best_param ] = alchemy( run_model, x, y, p_set, tunne_arg )
-```
-`run_model` denotes the model needs to be tunning. 
-It must be formed as follows:
-```matlab
-res = run_model(x, y, p)
-```
-`x`, `y`, and `p` denote the data, label, and parameters, where the type of `p` is structure. `res` is the returned structure with keywords of *metrics*. Inside of function `alchemy`, the metrics used for comparisons are obtained by `res.(metrics)`.  The procedure for searching optimal parameters satisfies `if best_mean < res.(metrics)`.  E.g. `res.(tunne_arg.metrics) = [average, standard deviation], res.ACC = [0.99, 0.01], res.NMI = [0.99, 0.01] `
+  Example: 
+  ```ans = 0``` denotes the example of furnace has not yet performed `compara` or `gridsearch`. 
 
-The `p_set` is the range of parameters.
-E.g.
-```matlab
-p_set.lambda = { 1, 2, 3, 4, 5 };
-p_set.gamma = { [1 1 1], [2 2 2], [3 3 3], [4 4 4], [5 5 5] }
-% myModel(x, y, lambda = 1, gamma = [1 1 1])
-% myModel(x, y, lambda = 2, gamma = [2 2 2])
-```
+  ```ans = 3``` denotes the example has performed `compara`. 
 
-The `tunne_arg` is utilized to control `alchemy`. 
-The whole keywords of `tunne_arg` are as follows:
-```matlab
-tunne_arg = struct('logging', 'every',...
-                   'show', 'every',...
-                   'threshold', 0,...
-                   'path','./tunneLOG.mat',...
-                   'metrics','ACC',...
-                   'bar','on',...
-                   'index',[1 1 1],...
-                   'parallel','off',
-                   'parallel_thread',feature('numCores'),...
-                   'save_gap',1);% default
-% Parameters
-% ------------
-%   $ run_model $:
-%     It must be of the form: `res = run_model(x, y, p)` where `x`, `y`, `p` denote data,
-%     groundthruth and parameters respectively. The types of `x`, `y` and
-%     `p` are cell (1 x V or V x 1), array (double) and structure,
-%     respectively. 
-%     The returned value (res) must be a structure with keywords of metrics ( res.(tunne_arg.metrics) = [average, standard deviation] ). E.g., res.ACC = [0.99, 0.01],
-%     res.NMI = [0.99, 0.01]. 
-%
-%   $ tunne_arg $:
-%     Arguments of ALCHEMY. Can set {'logging','show',
-%     'threshold','path','metrics','bar','index','parallel','parallel_thread','save_gap'}.
-%
-%     `logging`: Controlling the logging of information, can be set as
-%                "shutdown" (Shutdown logging); 
-%                "every" (Logging everyone); 
-%                "threshold" (Items which exceed the threshold are recorded); 
-%                "best" (Recording when the best result is updated). 
-%                The default value of 'logging' is "every". 
-%     It is worth noting that if `tunne_arg.logging` is not equal to `shutdown` and `parallel` is `on`, whole information in the calculation will be recorded, causing additional memory overheads.
-%     
-%
-%     `show`: Controlling the display of information, can be set as
-%             "shutdown" (Shutdown on-screen display); 
-%             "every" (Showing everyone in screen); 
-%             "threshold" (Items that exceed the threshold are shown); 
-%             "best" (Show when the best result is updated). 
-%             The default value of 'show' is "every". 
-%      It is worth noting that `tunne_arg.show` can only be selected as `shutdown`, "every" or "threshold" when `parallel` is `on`.
-%
-%     `threshold`: It works when `logging` or `show` is set to "threshold". | 0 (default) 
-%
-%     `path`: The path of logging file. Notice that it must be a mat file. | './tunneLOG.mat' (default) 
-%
-%     `metrics`: Metrics used for alignment {"ACC" "NMI" "Purity"  "P" "R"
-%     "F" "RI" "AR", ....}. | "ACC" (default)
-%   
-%      `bar`: Display progress bar | "on" (default) "off"
-%       Invalid when `parallel` is `on`. 
-%
-%      `index`: Specifying the initial parameter with index.
-%
-%      `parallel`: "off" (default)
-%                  "on" (Enabling Parallel Computing)
-%
-%      `parallel_thread`: Maximum number of cores (default)
-%               
-%      `save_gap`: The gap of saving results of searching. The default
-%      value is 1 (Every record is saved). Set to a larger value to reduce
-%      consumption of IO. It is worth noting that is is invalid when
-%      `parallel` is `on`. 
-```
-E.g.
-```matlab
-[x, y] = load(BBC4.mat);
-%% p_set
-p_set.lambda = {0.01,0.1,1,3,5,7};
-p_set.gamma =  {0.01,0.1,1,3,5,10,15,20};
-%% tunne_arg
-tunne_arg.parallel = "on";
-tunne_arg.bar = "on";
-tunne_arg.parallel_thread = 8 ;
-tunne_arg.save_gap = 10;
-tunne_arg.metrics = 'NMI';
-tunne_arg.path = './best.mat';
-tunne_arg.logging = 'best';
-tunne_arg.show = 'shutdown';
-%% tunne
-num_of_cluster = 10;
-varargin = ...
-[ best_param ] = alchemy( @(x, y, p)tsvdmsc(x, y, p, num_of_cluster, varargin), x, y, p_set, tunne_arg )
-```
+  ```ans = 2``` denotes the example has performed `gridsearch`. 
 
-###### `racetrack`
-`racetrack` is utilized to conduct the comparative experiments.
-```MATLAB
-  [ report ] = racetrack( methods, x, y, rules ) 
-% Functional description:
-% ------------------------
-% Conducting comparative experiments
-% 
-% Formality:
-% ------------------------
-% methods.WTNNM = @(X, varargin)RUN_WTNNM(x, y, k, lambda, gamma, varargin{:});
-% methods.KMEANS = @(X, varargin)RUN_KMEANS(x, y, k, 10, varargin{:});
-% methods.myMethods = @(X, varargin)myMethod(x, y, parameters, varargin{:})
-%
-% X = load(Dataset_path);
-%
-% rules.parallel = 'on';
-% rules.UnifiedCtrl = 1; % 
-% rules.SpecificCtrl = {1, 2, 3}; % UnifiedCtrl and SpecificCtrl{i} will be
-% used as `methods.WTNNM(X, rules.UnifiedCtrl, rules.SpecificCtrl{1})`
-% 
-% results = RACETRACK( methods, X, rules )
-%
-% Parameters
-% ------------
-%   $ methods $:
-%     A structure with each value is a function. 
-%     E.g. 
-%           ` methods: 
-%                     WTNNM:   RUN_WTNNM(X, varargin);
-%                     KMEAMS:  RUN_KMEAMS(X, varargin)
-%           `
-%
-%   $ X $:
-%     The datasets used for the experiment.
-%     Generally, `X` should contain the real data, the label and other
-%     extra parameters. X is a (n x 2) cell, the first column contains names of datasets and the
-%     second column contains entities of datasets. t
-%
-%   $ rules $:
-%     Arguments of experiment (type - structure). Can set
-%     {'parallel','threads','metrics', 'UnifiedCtrl', 'SpecificCtrl', 'SaveResults'， 'path_dir'}. 
-%
-%     `parallel`: "off"
-%                 "on" 
-%
-%     `threads`: Maximum number of cores (default); 
-%               Works only when `parallel` is "on"
-%
-%     `metrics`: The metrics used to compare the performance of each
-%     method.
-%
-%     `UnifiedCtrl` and `SpecificCtrl`: the parameters used to control
-%     methods. They are used as `method(data, UnifiedCtrl,
-%     SpecificCtrl{index_of_method})`.
-%   
-%     `SaveResults`: true
-%                    false
-%     `path_dir`: The folder where the file is stored.
-%                 ../racetrack_default_dir (default)
-%
-% Output
-% ------------
-%   Return a cell $ report $ with size num_of_datasets x num_of_methods.
-%   Return a structure $ IndexOfReport $ used to get the index of `report` by
-%   names of datasets and methods. 
-%
-%-----------------------------------------------------------------------
-%|  Author: LttGenius       Version: 1.0.7      Last update: 10.12.2023|
-%-----------------------------------------------------------------------
-%   For more information, see <a href=
-%   "https://github.com/LttGenius/furnace">LttGenius/furnace</a>.
-```
+  </details>
+- <details><summary><font color=#9400D3>InputParameters - Input parameter logging</font></summary>
+  Type: Structure
+
+  Fields: 
+  - InputsFlags (A $6\times 1$ array, indicates whether the following parameters are passed in)
+  - ParallelThread (An integer, that denotes the used cores for running in parallel)
+  - metrics (A cell, that denotes the field values used for printouts.)
+  - uCtrl (Unified control parameter.)
+  - sCtrl (A cell, specific control parameter.)
+  - SavePath (The path to save single-step results.)
+  - ShowBar (If it is given, the `waitbor` is valid. )
+  </details>
+- <details><summary><font color=#9400D3>ReportTable - Table</font></summary>
+  Type: Table
+
+  Size: $n\times m$, where $n$ and m are the numbers of models and datasets, respectively. 
+
+  Example: 
+  ```matlab
+  >> ReportTable
+  ReportTable =
+
+  3×3 table
+
+                   3source       bbcsport      Caltech7 
+                  __________    __________    __________
+
+    FastPGP_g1    1×1 struct    1×1 struct    1×1 struct
+    FastPGP_g2    1×1 struct    1×1 struct    1×1 struct
+    FastPGP_g3    1×1 struct    1×1 struct    1×1 struct
+    
+  ```
+  </details>
+
+##### <font color=#CD5C5C>Methods</font>
+- <details>
+  <summary><font color=#9400D3>furnace</font></summary>
+  Creating an instance. 
+
+  Example:
+  ```matlab
+  exa = furnace( datasets, models )
+  exa = furnace(  )
+  ```
+  `datasets` and `models` are cells (n x 3). The first, second, and third columns are tag, name, and data (path, numerical, or function_hanle). E.g.
+
+  ```matlab
+  >> datasets
+   3x3 cell
+    {[1]}    {'3source' }    {'Dataset\3source_Per0.mat' }
+    {[2]}    {'bbcsport'}    {'Dataset\bbcsport_Per0.mat'}
+    {[3]}    {'Caltech7'}    {'Dataset\Caltech7_Per0.mat'}
+
+
+  >> models
+    models =
+
+  3×3 cell array
+
+    {[1]}    {'RWLTA' }    {@runRWLTA}
+    {[2]}    {'PGP'}       {@runPGP}
+    {[3]}    {'Kmeans'}    {@runKmeans}
+  ```
+  Note that the following `compara` and `gridsearch` depend on `datasets` and `models`. If you want to run `compara` or `gridsearch`, `furnace( datasets, models )` is required. 
+  </details>
+- <details>
+  <summary><font color=#9400D3>compara</font></summary>
+  Conducting comparative experiments. 
+
+  Example:
+  <details>
+  <summary><font color=#9400D3><code>[ Performance ] = exa.compara()</code></font></summary>
+  It performs comparative experiments on all datasets for all models in serial. 
+  </details>
+
+  <details>
+  <summary><font color=#9400D3><code>[ Performance ] = exa.compara('parallel', NUMBER_OF_CORES)</code></font></summary>
+  It performs comparative experiments on all datasets for all datasets in parallel with `NUMBER_OF_CORES` thread. `NUMBER_OF_CORES` is 
+  optional, if `NUMBER_OF_CORES` is absent, the number of threads is the
+  maximum number of cores. 
+  </details>
+
+  <details>
+  <summary><font color=#9400D3><code>[ Performance ] = exa.compara( __, 'print', { ... } )</code></font></summary>
+  It enables Print-to-Screen. The following `{ ... }` is a cell with each element denoting the displayed fields. E.g. 
+  <code>exa.compara( __, 'print', { "acc", "nmi" } )
+  >> Epoch: 1/200, Model: RWLTA, Dataset: 3source<br />
+  >> acc: 98.21   0<br />
+  >> nmi: 97.13   0
+  </code>
+  </details>
+  
+  <details>
+  <summary><font color=#9400D3><code>[ Performance ] = exa.compara( __, 'uCtrl', uCtrl )</code></font></summary>
+  It transmits <code>uCtrl</code> into<code> function_handle(data, uCtrl, sCtrl{i})</code> 
+  </details>
+
+  <details>
+  <summary><font color=#9400D3><code>[ Performance ] = exa.compara( __, 'sCtrl', sCtrl )</code></font></summary>
+  It transmits <code>sCtrl{i}</code> into<code> function_handle(data, uCtrl, sCtrl{i})</code> 
+  </details>
+
+  <details>
+  <summary><font color=#9400D3><code>[ Performance ] = exa.compara( __, 'savepath', '...' )</code></font></summary>
+  It can save the results of each step. The '...' is the path to save. 
+  </details>
+
+  <details>
+  <summary><font color=#9400D3><code>[ Performance ] = exa.compara( __, 'waitbar' )</code></font></summary>
+  It enables the waitbar. 
+  </details>
+
+  </details>
+- <details>
+  <summary><font color=#9400D3>gridsearch</font></summary>
+  Conducting grid search on a certain model. Different from <code>exa.compara</code>, <code>exa.gridsearch</code> requires an extra parameter <code>ParameterSet</code>. The <code>ParameterSet</code> is a structure, containing sets of parameters, e.g. <br /><code>ParameterSet.lambda = { ... };<br />
+    ParameterSet.gamma =  { ... };<br />
+    ParameterSet.mu = { ... };</code>
+  Addtitonly, for <code>exa.gridsearch</code>, the <code>models</code> in <code>furnace(dataset, models)</code> must be a $1\times 3$ cell, e.g.</br>
+  <code>
+  models =
+
+  1×3 cell array
+
+    {[1]}    {'RWLTA'}    {@runRWLTA}
+  </code>
+  Once <code>exa.gridsearch</code> executed, multiple models are automatically generated based on the combination of parameters, referred to as `ModelName_gi`. For grid searches, <code>sCtrl</code> is invalid due to <code>exa.gridsearch</code> sets the inputting parameters as <code>sCtrl</code>. Therefore, for <code>exa.gridsearch</code>, the formality of <code>model</code> is as follows
+  <code>
+  function results = runModel(data, uCtrl, Parameters)
+    lambda = Parameters.lambda;
+    gamma = Parameters.gamma;
+  end
+  </code>
+
+  Example:
+  <details>
+  <summary><font color=#9400D3><code>[ Performance ] = exa.gridsearch( ParameterSet )</code></font></summary>
+  It performs grid searches on all datasets for one model in serial. 
+  </details>
+
+  <details>
+  <summary><font color=#9400D3><code>[ Performance ] = exa.gridsearch( __, 'parallel', NUMBER_OF_CORES)</code></font></summary>
+  It performs grid searches on all datasets for one model in parallel with `NUMBER_OF_CORES` thread. `NUMBER_OF_CORES` is 
+  optional, if `NUMBER_OF_CORES` is absent, the number of threads is the
+  maximum number of cores. 
+  </details>
+
+  <details>
+  <summary><font color=#9400D3><code>[ Performance ] = exa.gridsearch( __, 'print', { ... } )</code></font></summary>
+  It enables Print-to-Screen. The following `{ ... }` is a cell with each element denoting the displayed fields. E.g. 
+  <code>exa.gridsearch( __, 'print', { "acc", "nmi" } )
+  >> Epoch: 1/200, Model: RWLTA, Dataset: 3source<br />
+  >> acc: 98.21   0<br />
+  >> nmi: 97.13   0
+  </code>
+  </details>
+  
+  <details>
+  <summary><font color=#9400D3><code>[ Performance ] = exa.gridsearch( __, 'uCtrl', uCtrl )</code></font></summary>
+  It transmits <code>uCtrl</code> into<code> function_handle(data, uCtrl, sCtrl{i})</code> 
+  </details>
+
+  <details>
+  <summary><font color=#9400D3><code>[ Performance ] = exa.gridsearch( __, 'sCtrl', sCtrl )</code></font></summary>
+  It transmits <code>sCtrl{i}</code> into<code> function_handle(data, uCtrl, sCtrl{i})</code> 
+  </details>
+
+  <details>
+  <summary><font color=#9400D3><code>[ Performance ] = exa.gridsearch( __, 'savepath', '...' )</code></font></summary>
+  It can save the results of each step. The '...' is the path to save. 
+  </details>
+
+  <details>
+  <summary><font color=#9400D3><code>[ Performance ] = exa.gridsearch( __, 'waitbar' )</code></font></summary>
+  It enables the waitbar. 
+  </details>
+
+  </details>
+- <details>
+  <summary><font color=#9400D3>getlatextable</font></summary>
+
+  Transmits the ReportTable to $\LaTeX$ table. E.g., the original $\LaTeX$ style table is 
+  ```
+    \begin{table}[ht]
+      \centering
+      \begin{tabular}{*{3}{c}}
+          \hline
+          Models & Data1 & Data1 \\
+          \hline
+          Model1 & furnace.FastPGP_g1.3source.acc & furnace.FastPGP_g1.bbcsport.acc\\
+          Model2 & furnace.FastPGP_g2.3source.acc & furnace.FastPGP_g2.bbcsport.acc\\
+          \hline
+      \end{tabular}
+  \end{table}
+  ```
+  `getlatextable` can replace `furnace.FastPGP_g1.3source.acc` to a real value. 
+  Furthermore, `Model1` and `Data1` can also be replaced. 
+
+  The symbolic placeholder of $\LaTeX$ style table consists of prompt string `furnace`, name of models, e.g. `FastPGP_g1`, name of datasets, e.g. `3source`, and field of results, e.g. `acc`. They are linked by the separator `.`. If `Model1` or `Data1` needs to be replaced, please give parameters `modelnickname` or `datanickname`, respectively. 
+
+  Example:
+    <details>
+    <summary><font color=#9400D3><code>[ filetext ] = exa.getlatextable(FormatFile, 'format', '...')</code></font></summary>.
+    FormatFile is a text file that contains the $\LaTeX$ Table Style.
+    The 'format' indicates the format of the output string as shown in the following '...', E.g. '%.2f(%.2f)'.
+    </details>
+
+    <details>
+    <summary><font color=#9400D3><code>[ filetext ] = exa.getlatextable( __, 'optimal', {"...", ...},'metrics', {"...", ...},'analysis', @function).</code></font></summary>.
+    It sorts the values of fields indicated by `'metrics', {"...", ...}` in descending order, and replaces them with styles from `'optimal', {"...", ...}` in order. The `'analysis', @function` is the function for conducting sorting. If `'analysis', @function` is absent, the default function is as follows. 
+
+    ```matlab
+    function [ ResultMap ] = dataanalysis( data, keys )
+      %dataanalysis Default sort
+      [NModels, NDatasets] = size(data);
+      Nkeys = numel(keys);
+      ResultMap = zeros(NModels, NDatasets, Nkeys);
+      TempMap = zeros(NModels, NDatasets, Nkeys);
+      % Get optimal model for each dataset. 
+      for iData = 1:NDatasets
+          for iModel = 1:NModels
+              r = data{iModel, iData};
+              for iKey = 1:Nkeys
+                  m = r.(keys{iKey});
+                  if numel(m) > 1
+                      TempMap(iModel, iData, iKey) = m(1);
+                  else
+                      TempMap(iModel, iData, iKey) = m;
+                  end
+              end
+          end
+      end
+      [ ~, SortIndex ] = sort(TempMap, 1, 'descend');
+      for iData = 1:NDatasets
+          for iModel = 1:NModels
+              for iKey = 1:Nkeys
+                  t = SortIndex(iModel, iData, iKey);
+                  ResultMap(t, iData, iKey) = iModel;
+              end
+          end
+      end
+      end
+  ```
+    </details>
+
+    <details>
+    <summary><font color=#9400D3><code>[ filetext ] = exa.getlatextable( __, 'datanickname', {'...', '...'; ...} )</code></font></summary>.
+    It will replace dataset names. E.g. {'Data1', '3source'; 'Data2', 'ORL'}, it replaces 'Data1' by '3source'. 
+    </details>
+
+    <details>
+    <summary><font color=#9400D3><code>[ filetext ] = exa.getlatextable( __, 'modelnickname', {'...', '...'; ...} )</code></font></summary>.
+    It will replace model names. 
+    </details>
+
+    <details>
+    <summary><font color=#9400D3><code>[ filetext ] = exa.getlatextable( __, 'source', '...' )</code></font></summary>.
+    It will load data from '...'. If `exa.compara` or `exa.gridsearch` is not executed before, 'source' and '...' must be given.
+    </details>
+
+    <details>
+    <summary><font color=#9400D3><code>[ filetext ] = exa.getlatextable( __, 'savepath', '...' )</code></font></summary>.
+    It saves the results in path '...'.
+    </details>
+  
+  </details>
+
 ---
 
-### Description of the document catalog
-
-```
-furnace
-├── LICENSE.txt
-├── README.md
-├── /support/
-│    ├── recorder.m
-│    └── show2screen.m
-├── alchemy.m
-└── racetrack.m
-
-```
-
----
-
-### Author
+## Author
 
 pushyu404@163.com
 
 ---
 
-### Copyright 
+## Copyright 
 
-For more information, please refer to [LICENSE.txt](https://github.com/LttGenius/furnace/blob/master/LICENSE.txt)
+For more information, please refer to [LICENSE.txt](https://github.com/xinyu-pu/furnace/blob/master/LICENSE.txt)
 
 <!-- links -->
-[your-project-path]:LttGenius/furnace
-[contributors-shield]: https://img.shields.io/github/contributors/LttGenius/furnace.svg?style=flat-square
-[contributors-url]: https://github.com/LttGenius/furnace/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/LttGenius/furnace.svg?style=flat-square
-[forks-url]: https://github.com/LttGenius/furnace/network/members
-[stars-shield]: https://img.shields.io/github/stars/LttGenius/furnace.svg?style=flat-square
-[stars-url]: https://github.com/LttGenius/furnace/stargazers
-[issues-shield]: https://img.shields.io/github/issues/LttGenius/furnace.svg?style=flat-square
-[issues-url]: https://img.shields.io/github/issues/LttGenius/furnace.svg
-[license-shield]: https://img.shields.io/github/license/LttGenius/furnace.svg?style=flat-square
-[license-url]: https://github.com/LttGenius/furnace/blob/master/LICENSE.txt
+[your-project-path]:xinyu-pu/furnace
+[contributors-shield]: https://img.shields.io/github/contributors/xinyu-pu/furnace.svg?style=flat-square
+[contributors-url]: https://github.com/xinyu-pu/furnace/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/xinyu-pu/furnace.svg?style=flat-square
+[forks-url]: https://github.com/xinyu-pu/furnace/network/members
+[stars-shield]: https://img.shields.io/github/stars/xinyu-pu/furnace.svg?style=flat-square
+[stars-url]: https://github.com/xinyu-pu/furnace/stargazers
+[issues-shield]: https://img.shields.io/github/issues/xinyu-pu/furnace.svg?style=flat-square
+[issues-url]: https://img.shields.io/github/issues/xinyu-pu/furnace.svg
+[license-shield]: https://img.shields.io/github/license/xinyu-pu/furnace.svg?style=flat-square
+[license-url]: https://github.com/xinyu-pu/furnace/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=flat-square&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/shaojintian

@@ -206,17 +206,14 @@ classdef furnace < handle
     % 'ORL'}. 
     %
     % [ filetext ] = exa.getlatextable( __, 'modelnickname', {'...', '...'; ...} ). 
-    % will replace dataset names. E.g. {'Model1', 'PGP'; 'Model2',
+    % will replace models names. E.g. {'Model1', 'PGP'; 'Model2',
     % 'RWLTA'}. 
     %
     % [ filetext ] = exa.getlatextable( __, 'source', '...' ). 
     % will load data from '...'. If exa.compara or exa.gridsearch is not 
     % executed before, 'source' and '...' must be given. 
     %
-    % [ filetext ] = exa.getlatextable( __, 'savepath', '...' ) can save 
-    % the results in path '...'. 
-    %
-    % [ filetext ] = exa.getlatextable( __, 'savepath', '...' ) can save 
+    % [ filetext ] = exa.getlatextable( __, 'savepath', '...' ) can saves
     % the results in path '...'. 
     %
     % Return
@@ -245,7 +242,7 @@ classdef furnace < handle
     %-----------------------------------------------------------------------
     %   For more information, see <a href=
     %   "https://github.com/xinyu-pu/furnace">xinyu-pu/furnace</a>.
-
+    
     properties(Access = protected)
         PATH_NAME = '/support';
         ALL_MODE = {'parallel', 'print', 'uCtrl', 'sCtrl', 'SavePath', 'waitbar' };
@@ -446,12 +443,24 @@ classdef furnace < handle
             end
 
             obj.InputParameters.InputsFlags = InputsFlags;
-            obj.InputParameters.ParallelThread = ParallelThread;
-            obj.InputParameters.print = metrics;
-            obj.InputParameters.uCtrl = uCtrl;
-            obj.InputParameters.sCtrl = sCtrl;
-            obj.InputParameters.SavePath = SavePath;
-            obj.InputParameters.ShowBar = ShowBar;
+            if InputsFlags(1)
+                obj.InputParameters.ParallelThread = ParallelThread;
+            end
+            if InputsFlags(2)
+                obj.InputParameters.print = metrics;
+            end
+            if InputsFlags(3)
+                obj.InputParameters.uCtrl = uCtrl;
+            end
+            if obj.status == 3 && InputsFlags(4)
+                obj.InputParameters.sCtrl = sCtrl;
+            end
+            if InputsFlags(5)
+                obj.InputParameters.SavePath = SavePath;
+            end
+            if InputsFlags(6)
+                obj.InputParameters.ShowBar = ShowBar;
+            end
             obj.ReportTable = result;
         end
 
